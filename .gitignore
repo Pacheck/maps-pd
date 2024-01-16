@@ -1,0 +1,4 @@
+credential.json
+.env*
+!.env.example
+venv

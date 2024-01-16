@@ -1,0 +1,10 @@
+geopandas
+pandas
+matplotlib_scalebar
+matplotlib
+shapely
+pandas_gbq
+streamlit
+google-cloud-bigquery
+aiocache
+redis
