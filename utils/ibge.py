@@ -1,10 +1,12 @@
 import streamlit as st
 import requests
 
+BASE_URL = "https://brasilapi.com.br/api/ibge"
+
 
 @st.cache_data
 def getEstados():
-  url = "https://brasilapi.com.br/api/ibge/uf/v1"
+  url = f"{BASE_URL}/uf/v1"
   estados = ['']
 
   response = requests.get(url)
@@ -22,13 +24,13 @@ def getEstados():
 
 
 @st.cache_data
-def getCidades(uf):
+def getCidades(uf: str):
   cidades = ['']
 
   if uf == '':
     return cidades
 
-  url = f"https://brasilapi.com.br/api/ibge/municipios/v1/{uf}"
+  url = f"{BASE_URL}/municipios/v1/{uf}"
   response = requests.get(url)
   if response.status_code == 200:
     data = response.json()

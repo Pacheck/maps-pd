@@ -6,7 +6,7 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import streamlit as st
-
+from datetime import datetime
 
 @st.cache_data
 def loadVegetationData(estado: str, project_num: str):

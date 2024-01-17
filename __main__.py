@@ -3,7 +3,7 @@ from maps import buildGeomorphologyMap, buildVegetationMap
 from utils import getEstados, getCidades
 
 
-def main():
+def main() -> None:
   st.sidebar.title('Configurações')
 
   project_num = st.sidebar.selectbox('Selecione o n° do projeto', ['2'])
