@@ -6,10 +6,11 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import streamlit as st
-from datetime import datetime
+import geopandas as gpd
+
 
 @st.cache_data
-def loadVegetationData(estado: str, project_num: str):
+def loadVegetationData(estado: str, project_num: str) -> list[gpd.GeoDataFrame]:
   queries = [
       # Dados de Estado
       """
@@ -31,7 +32,7 @@ def loadVegetationData(estado: str, project_num: str):
       SELECT
       *
       FROM `moss-forest.limites_projetos.limites_total_seringueira`
-      where project_num = '{project_num}'
+      WHERE project_num = '{project_num}'
       """,
 
       # Dados de AUD
@@ -39,7 +40,7 @@ def loadVegetationData(estado: str, project_num: str):
       SELECT
       *
       FROM `moss-forest.limites_projetos.Seringueira_v2`
-      where project_num = '{project_num}'
+      WHERE project_num = '{project_num}'
       """,
 
       # Zoom do mapa
@@ -68,7 +69,7 @@ def loadVegetationData(estado: str, project_num: str):
 
 def buildVegetationMap(municipio: str, estado: str, project_num: str):
   paleta = {}
-  paleta_vege_default_colors = [
+  paleta_default_colors = [
       ("Alluvial Open Ombrophilous Forest", "#C8FFB0"),
       ("Lowland Open Ombrophilous Forest", '#ADFFB0'),
       ("Alluvial Dense Ombrophilous Forest", "#84FF4C"),
@@ -84,10 +85,10 @@ def buildVegetationMap(municipio: str, estado: str, project_num: str):
   ]
 
   with st.sidebar.expander("Paleta de cores"):
-    for key, color in paleta_vege_default_colors:
+    for key, color in paleta_default_colors:
       paleta[key] = st.color_picker(key, color)
 
-  uf_gdf, mun_gdf, areaproj_gdf, aud, zoom_gdf, zona_gdf, vege_gdf = loadVegetationData(
+  uf_gdf, mun_gdf, areaproj_gdf, aud_gdf, zoom_gdf, zona_gdf, vege_gdf = loadVegetationData(
       estado, project_num)
 
   # Configurações da Seta Norte e Escala
@@ -113,8 +114,7 @@ def buildVegetationMap(municipio: str, estado: str, project_num: str):
         'Altura da seta', min_value=0.0, max_value=1.0, value=arrow_length)
 
   # Configurações da Legenda
-    legendaX = 1.0
-    legendaY = 1.01
+  legendaX, legendaY = 1.0, 1.01
   with st.sidebar.expander("Legenda"):
     legendaX = st.slider('Longitude', min_value=0.0,
                          max_value=1.2, value=legendaX)
@@ -144,13 +144,14 @@ def buildVegetationMap(municipio: str, estado: str, project_num: str):
 
   # Vegetation types in the Seringueira project area
   minx, miny, maxx, maxy = zoom_gdf.total_bounds
+
   # Crie a figura e o eixo de plotagem. Defina o tamanho da figura
   fig, eixo = plt.subplots(figsize=(12, 12))
+
   # Limites dos polígonos da área do projeto
   areaproj_gdf.boundary.plot(ax=eixo, color="black",
                              linewidth=1.3, linestyle='--')
-  # Limites dos polígonos da área do projeto
-  aud.boundary.plot(ax=eixo, color="#FF1493", linewidth=1.3, hatch='//')
+  aud_gdf.boundary.plot(ax=eixo, color="#FF1493", linewidth=1.3, hatch='//')
   vege_gdf.boundary.plot(ax=eixo, color="lightgray", linewidth=0.5)
   uf_gdf.boundary.plot(ax=eixo, color="lightgray", linewidth=4)
   mun_gdf.boundary.plot(ax=eixo, color="black", linewidth=0.5)
@@ -186,15 +187,17 @@ def buildVegetationMap(municipio: str, estado: str, project_num: str):
     if data.intersects(zona_gdf.unary_union).any():
       # Use o dicionário para obter a cor correspondente
       cor = paleta.get(valor)
+
       # Crie um retângulo para representar a classe na legenda e adicione ao elemento da legenda
       rectangle = mpatches.Rectangle(
           (0, 0), 0.1, 0.1, facecolor=cor, edgecolor='black', label=valor)
       legend_elements.append(rectangle)
+
       # Plote cada classe com a cor especificada pelo dicionário
       data.plot(ax=eixo, color=cor, linewidth=1.3, label=valor)
 
   # Posicione a legenda à direita do mapa
-  legenda = plt.legend(handles=legend_elements, bbox_to_anchor=(
+  plt.legend(handles=legend_elements, bbox_to_anchor=(
       legendaX, legendaY), loc='upper left', fontsize=9)
 
   # Adicione rótulos aos polígonos dentro do eixo
@@ -206,6 +209,7 @@ def buildVegetationMap(municipio: str, estado: str, project_num: str):
 
   # Defina o estilo dos rótulos do eixo como plain para evitar que os valores sejam representados como notação científica
   eixo.ticklabel_format(style="plain")
+
   # Rotacione os rótulos do eixo y em 90 graus
   eixo.set_yticklabels(eixo.get_yticks(), rotation=90)
   eixo.yaxis.set_major_formatter(FormatStrFormatter("%.0f"))

@@ -6,10 +6,11 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.gridspec as gridspec
+import geopandas as gpd
 
 
 @st.cache_data
-def loadGeomorphologyData(estado: str, project_num: str):
+def loadGeomorphologyData(estado: str, project_num: str) -> list[gpd.GeoDataFrame]:
   queries = [
       # Dados de Estado
       """
