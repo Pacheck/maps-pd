@@ -1,5 +1,10 @@
 from .geopandas import queryToGDF, asyncQueryToGDF, batchAsyncQueryToGDF
-from .ibge import getEstados, getCidades
+from .streamlit import save_file, delete_file
 
-__all__ = ['queryToGDF', 'asyncQueryToGDF',
-           'batchAsyncQueryToGDF', 'getEstados', 'getCidades']
+__all__ = [
+    'queryToGDF',
+    'asyncQueryToGDF',
+    'batchAsyncQueryToGDF',
+    'save_file',
+    'delete_file'
+]

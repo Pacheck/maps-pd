@@ -3,3 +3,5 @@ credential.json
 !.env.example
 venv
 __pycache__
+tmp/*
+!.gitkeep
