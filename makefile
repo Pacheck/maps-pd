@@ -5,7 +5,7 @@ default: dev
 dev:
 	@dotenv venv/bin/streamlit run main.py
 migrate:
-	@dotenv venv/bin/python migrate.py
+	@dotenv venv/bin/python3 migrate.py
 run-vegetation:
 	@dotenv venv/bin/streamlit run vegetation.py
 run-geomorphology:
@@ -13,4 +13,4 @@ run-geomorphology:
 start:
 	@streamlit run main.py
 install:
-	@python -m venv venv && venv/bin/python -m pip install -r requirements.txt
+	@python3 -m venv venv && venv/bin/python3 -m pip install -r requirements.txt

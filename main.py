@@ -1,7 +1,6 @@
 import streamlit as st
 from pydantic import BaseModel
 import streamlit_pydantic as sp
-from uuid import uuid4
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -10,9 +9,14 @@ from matplotlib_scalebar.scalebar import ScaleBar
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.patches as mpatches
 import asyncio
+from uuid import uuid4
 
-from utils import gdf_manager, file_manager, map_manager
-from services import bigquery, cloud_storage, ibge, Project, shapefile_to_polygon
+from services import bigquery, cloud_storage, shapefile_to_polygon
+from services.bigquery.project import Project
+import services.ibge as ibge
+import utils.gdf_manager as gdf_manager
+import utils.file_manager as file_manager
+import utils.map_manager as map_manager
 
 
 class ProjectModel(BaseModel):
@@ -157,6 +161,31 @@ def main():
     logo_y2 = st.slider('Latitude do 3° canto do retângulo',
                         min_value=0.0, max_value=1.0, value=logo_y2)
 
+  legend_colors = {
+      'Property Area': '#000000',
+      'Project Area AUD': '#FF1493',
+      'State Boundaries': '#D3D3D3',
+      'Municipal Boundaries': '#000000',
+      'Alluvial Open Ombrophilous Forest': "#C8FFB0",
+      'Lowland Open Ombrophilous Forest': '#ADFFB0',
+      'Alluvial Dense Ombrophilous Forest': "#84FF4C",
+      'Lowland Dense Ombrophilous Forest': "#00FF4B",
+      'Urban Influence': '#808080',
+      "Continental Water Body": '#0000ff',
+      'Livestock Pastures': '#ffff00',
+      'Wooded Campinarana': '#66CDAA',
+      'Submontane Dense Ombrophilous Forest': '#2F4F4F',
+      'Wooded Campinarana': '#98FB98',
+      'Secondary Vegetation': '#3CB371',
+      'Pioneer Formation with Fluvial and/or Lacustrine Influence': '#808000',
+      'Grassy Wooded Campinarana': '#556B2F'
+  }
+
+  # Paleta de cores
+  with st.sidebar.expander("Paleta de cores"):
+    for key, color in legend_colors.items():
+      legend_colors[key] = st.color_picker(key, color)
+
   if st.sidebar.button("Gerar mapa"):
     errors: list[str] = []
 
@@ -233,36 +262,18 @@ def main():
       elif buffer['tamanhoKM'] == 200:
         vegetation_buffer_id = buffer['bigQueryId']
 
-    zona_gdf, vege_gdf = get_zone_and_vegetation(
+    zone_gdf, vegetation_gdf = get_zone_and_vegetation(
         zone_buffer_id, vegetation_buffer_id)
 
-    legend_colors = {
-        'Property Area': '#000000',
-        'Project Area AUD': '#FF1493',
-        'State Boundaries': '#D3D3D3',
-        'Municipal Boundaries': '#000000',
-    }
-
-    # Denifir as cores das classes de vegetação
-    vegetation_legends = vege_gdf['legend'].unique()
-    vegetation_color_options = ["#0000ff", "#00FF4B",
-                                "#2F4F4F", "#3CB371", "#556B2F", "#808000", "#808080",
-                                "#84FF4C", "#98FB98", "#ADFFB0", "#C8FFB0", "#ffff00"]
-    for i, vegetation_legend in enumerate(vegetation_legends):
-      legend_colors[vegetation_legend] = vegetation_color_options[i %
-                                                                  len(vegetation_color_options)]
-
-    # Paleta de cores
-    with st.sidebar.expander("Paleta de cores"):
-      for key, color in legend_colors.items():
-        legend_colors[key] = st.color_picker(key, color)
+    # Definir as cores das classes de vegetação
+    vegetation_legends = vegetation_gdf['legend'].unique()
 
     # Desenhar polígonos no mapa
     property_area_gdf.boundary.plot(ax=axes, color=legend_colors["Property Area"],
                                     linewidth=1.3, linestyle='--')
     aud_gdf.boundary.plot(
         ax=axes, color=legend_colors["Project Area AUD"], linewidth=1.3, hatch='//')
-    vege_gdf.boundary.plot(ax=axes, color="lightgray", linewidth=0.5)
+    vegetation_gdf.boundary.plot(ax=axes, color="lightgray", linewidth=0.5)
     uf_gdf.boundary.plot(
         ax=axes, color=legend_colors['State Boundaries'], linewidth=4)
     mun_gdf.boundary.plot(
@@ -283,8 +294,8 @@ def main():
 
     # Legendas das classes de vegetação
     for vegetation_legend in vegetation_legends:
-      data = vege_gdf[vege_gdf.legend == vegetation_legend]
-      if data.intersects(zona_gdf.unary_union).any():
+      data = vegetation_gdf[vegetation_gdf.legend == vegetation_legend]
+      if data.intersects(zone_gdf.unary_union).any():
         color = legend_colors[vegetation_legend]
 
         legend_elements.append(mpatches.Rectangle(
@@ -340,6 +351,13 @@ def main():
         boxstyle='round,pad=0.3', edgecolor='lightgray', facecolor='white'))
 
     st.pyplot(fig)
+
+    st.download_button(
+        label="Baixar mapa",
+        data=file_manager.convert_fig_to_bytes(fig),
+        file_name=f"vegetation-map-{uuid4()}.png",
+        mime="image/png",
+    )
 
 
 if __name__ == "__main__":
