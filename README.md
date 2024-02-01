@@ -2,6 +2,7 @@
 
 ## Requirements to get started
 
+- [virtualenv](https://pypi.org/project/virtualenv)
 - [dotenv-cli](https://www.npmjs.com/package/dotenv-cli)
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [GNU make](https://community.chocolatey.org/packages/make)
