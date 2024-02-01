@@ -1,15 +1,20 @@
-from .ibge import IBGE
 from .bigquery import BigQuery
 from .bigquery.project import Project
 from .bigquery.area import Area, AreaType
+from .cloud_storage import CloudStorage
+import ibge
+from .shapefile_to_polygon import ShapefileToPolygonAPI
 
-ibge = IBGE()
 bigquery = BigQuery()
+cloud_storage = CloudStorage()
+shapefile_to_polygon = ShapefileToPolygonAPI()
 
 __all__ = [
-    "ibge",
     "bigquery",
-    "Project",
+    "cloud_storage",
+    "ibge",
+    "shapefile_to_polygon",
     "Area",
-    "AreaType"
+    "AreaType",
+    "Project"
 ]

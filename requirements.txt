@@ -1,10 +1,11 @@
 geopandas
-pandas
-matplotlib_scalebar
+google-cloud-bigquery
+google-cloud-storage
 matplotlib
-shapely
+matplotlib_scalebar
+pandas
 pandas_gbq
+pydantic==1.10.11
+shapely
 streamlit
 streamlit_pydantic
-google-cloud-bigquery
-pydantic==1.10.11

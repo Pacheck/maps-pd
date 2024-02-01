@@ -1,7 +1,9 @@
 from google.cloud import bigquery
-from .constants import tables
 from datetime import datetime
 from enum import Enum
+from uuid import uuid4
+
+from .constants import tables
 
 
 class AreaType(Enum):
@@ -20,13 +22,19 @@ class Area:
 
   def __init__(
       self,
-      id: str,
       project_id: str,
       type: AreaType,
       geometry: str,
       car: str,
+      id: str = None,
       created_at: datetime = None
   ):
+    if not id:
+      id = uuid4()
+
+    if not created_at:
+      created_at = datetime.now()
+
     self.id = id
     self.project_id = project_id
     self.type = type
@@ -59,8 +67,8 @@ class AreaManager:
 
     r = results[0]
 
-    area = Area(r["id"], r["project_id"], r["type"], r["geometry"],
-                r["car"], r["created_at"])
+    area = Area(r["project_id"], r["type"], r["geometry"],
+                r["car"], r["id"], r["created_at"])
 
     return area
 
@@ -71,8 +79,8 @@ class AreaManager:
                 """
     results = self.client.query(query_str).result()
 
-    areas = [Area(r["id"], r["project_id"], r["type"], r["geometry"],
-                  r["car"], r["created_at"]) for r in results]
+    areas = [Area(r["project_id"], r["type"], r["geometry"],
+                  r["car"], r["id"], r["created_at"]) for r in results]
 
     return areas
 
@@ -82,7 +90,7 @@ class AreaManager:
                 """
     results = self.client.query(query_str).result()
 
-    areas = [Area(r["id"], r["project_id"], r["type"], r["geometry"],
-                  r["car"], r["created_at"]) for r in results]
+    areas = [Area(r["project_id"], r["type"], r["geometry"],
+                  r["car"], r["id"], r["created_at"]) for r in results]
 
     return areas

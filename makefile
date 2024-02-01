@@ -7,9 +7,9 @@ dev:
 migrate:
 	@dotenv venv/bin/python migrate.py
 run-vegetation:
-	@dotenv venv/bin/python vegetation.py
+	@dotenv venv/bin/streamlit run vegetation.py
 run-geomorphology:
-	@dotenv venv/bin/python geomorphology.py
+	@dotenv venv/bin/streamlit run geomorphology.py
 start:
 	@streamlit run main.py
 install:
